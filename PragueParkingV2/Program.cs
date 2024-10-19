@@ -1,18 +1,21 @@
-﻿using System;
+﻿using PragueParkingV2;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+
 
 class Program
 {
     static void Main(string[] args)
     {
         // Läs in konfigurationsdata från JSON-fil
-        string configFilePath = "../../../config.json";  // Sökvägen till JSON-filen
+        string configFilePath = "../../../config.json";
         Configuration config = LoadConfiguration(configFilePath);
 
         if (config != null)
         {
+            // Visa information om antal parkeringsplatser och fordonstyper
             Console.WriteLine($"Antal parkeringsplatser: {config.ParkingSpots}");
             Console.WriteLine("Fordonstyper och deras storlekar:");
             foreach (var vehicleType in config.VehicleTypes)
@@ -47,35 +50,26 @@ class Program
 
                         } while (registrationNumber.Length > 10);
 
-                        garage.ParkVehicle(vehicleType, registrationNumber);
+                        Vehicle vehicle;
+                        if (vehicleType == "CAR")
+                        {
+                            vehicle = new Car(registrationNumber);
+                        }
+                        else if (vehicleType == "MC")
+                        {
+                            vehicle = new MC(registrationNumber);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ogiltig fordonstyp.");
+                            break;
+                        }
+
+                        garage.ParkVehicle(vehicle);
                         break;
 
                     case "2":
                         garage.ShowParkingLot();
-                        break;
-
-                    case "3":
-                        Console.WriteLine("Ange registreringsnummer för fordonet som ska flyttas:");
-                        string regToMove = Console.ReadLine().ToUpper();
-
-                        Console.WriteLine("Ange ny plats att flytta fordonet till:");
-                        int newSpot = int.Parse(Console.ReadLine());
-
-                        garage.MoveVehicle(regToMove, newSpot);
-                        break;
-
-                    case "4":
-                        Console.WriteLine("Ange registreringsnummer för fordonet du söker:");
-                        string regToFind = Console.ReadLine().ToUpper();
-
-                        garage.FindVehicle(regToFind);
-                        break;
-
-                    case "5":
-                        Console.WriteLine("Ange registreringsnummer för fordonet som ska tas bort:");
-                        string regToRemove = Console.ReadLine().ToUpper();
-
-                        garage.RemoveVehicle(regToRemove);
                         break;
 
                     case "6":
@@ -94,6 +88,7 @@ class Program
             Console.WriteLine("Misslyckades med att läsa in konfigurationen.");
         }
     }
+
 
     // Metod för att visa menyn
     static void ShowMenu()
