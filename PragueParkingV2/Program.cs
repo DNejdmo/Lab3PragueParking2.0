@@ -13,7 +13,10 @@ class Program
         string configFilePath = "../../../config.json";
         Configuration config = LoadConfiguration(configFilePath);
 
-        if (config != null)
+        string priceListFilePath = "../../../pricelist.txt";
+        Dictionary<string, int> priceList = LoadPriceList(priceListFilePath);
+
+        if (config != null && priceList != null)
         {
             // Visa information om antal parkeringsplatser och fordonstyper
             Console.WriteLine($"Antal parkeringsplatser: {config.ParkingSpots}");
@@ -72,6 +75,32 @@ class Program
                         garage.ShowParkingLot();
                         break;
 
+                    case "3":
+                        Console.WriteLine("Ange registreringsnummer för fordonet som ska flyttas:");
+                        string regToMove = Console.ReadLine().ToUpper();
+                        Console.WriteLine("Ange ny plats att flytta fordonet till:");
+                        int newSpot = int.Parse(Console.ReadLine());
+                        garage.MoveVehicle(regToMove, newSpot);
+                        break;
+
+                    case "4":
+                        Console.WriteLine("Ange registreringsnummer för fordonet du söker:");
+                        string regToFind = Console.ReadLine().ToUpper();
+                        garage.FindVehicle(regToFind);
+                        break;
+
+                    case "5":
+                        Console.WriteLine("Ange registreringsnummer på fordonet som ska lämna:");
+                        string regNumber = Console.ReadLine().ToUpper();
+
+                        Vehicle vehicleToRemove = garage.RemoveVehicle(regNumber);
+                        if (vehicleToRemove != null)
+                        {
+                            int price = CalculateParkingPrice(vehicleToRemove, priceList);
+                            Console.WriteLine($"Fordonet {vehicleToRemove.RegistrationNumber} ska betala {price} CZK.");
+                        }
+                        break;
+
                     case "6":
                         exit = true;
                         Console.WriteLine("Avslutar programmet...");
@@ -117,5 +146,59 @@ class Program
             return null;
         }
     }
+     
+
+    //Metod för att läsa in prislistan
+    public static Dictionary<string, int> LoadPriceList(string filePath)
+    {
+        var priceList = new Dictionary<string, int>();
+
+        try
+        {
+            foreach (var line in File.ReadAllLines(filePath))
+            {
+                if (!line.StartsWith("#") && !string.IsNullOrWhiteSpace(line))
+                {
+                    var parts = line.Split('=');
+                    if (parts.Length == 2 && int.TryParse(parts[1], out int price))
+                    {
+                        priceList[parts[0]] = price;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fel vid inläsning av prislistan: {ex.Message}");
+        }
+
+        return priceList;
+    }
+
+    //Metod för att beräkna priset.
+    public static int CalculateParkingPrice(Vehicle vehicle, Dictionary<string, int> priceList)
+    {
+        TimeSpan parkingDuration = DateTime.Now - vehicle.ParkingTime;
+
+        // Om parkeringstiden är mindre än eller lika med 10 minuter, är det gratis
+        if (parkingDuration.TotalMinutes <= 10)
+        {
+            return 0;
+        }
+
+        // Hämta pris per timme baserat på fordonstyp
+        if (priceList.TryGetValue(vehicle.VehicleType, out int hourlyRate))
+        {
+            // Beräkna antalet timmar och runda upp till närmaste timme
+            int hoursParked = (int)Math.Ceiling(parkingDuration.TotalHours);
+            return hoursParked * hourlyRate;
+        }
+
+        // Om fordonstypen inte finns i prislistan
+        Console.WriteLine($"Ingen prisinformation tillgänglig för fordonstypen {vehicle.VehicleType}.");
+        return 0;
+    }
+
+
 }
 

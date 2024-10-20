@@ -1,0 +1,5 @@
+# Prislista för Prague Parking
+CAR=20
+MC=10
+BUS=80
+BICYCLE=5
