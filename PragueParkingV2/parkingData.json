@@ -1,0 +1,20 @@
+[
+  {
+    "RegistrationNumber": "MC005",
+    "VehicleType": "MC",
+    "ParkingTime": "2024-10-21T09:26:12.4929535+02:00",
+    "ParkingSpot": 1
+  },
+  {
+    "RegistrationNumber": "CAR004",
+    "VehicleType": "CAR",
+    "ParkingTime": "2024-10-21T09:26:02.6530588+02:00",
+    "ParkingSpot": 2
+  },
+  {
+    "RegistrationNumber": "MC002",
+    "VehicleType": "MC",
+    "ParkingTime": "2024-10-21T09:25:33.0837537+02:00",
+    "ParkingSpot": 9
+  }
+]

@@ -1,8 +1,10 @@
 ﻿using PragueParkingV2;
+using System.Text.Json;
 
 public class ParkingGarage
 {
     private List<Vehicle>[] parkingLot;
+    private string saveFilePath = "../../../parkingData.json"; // Fil där data sparas när programmet stängs
 
     public ParkingGarage(int spots, List<VehicleType> vehicleTypes)
     {
@@ -11,6 +13,9 @@ public class ParkingGarage
         {
             parkingLot[i] = new List<Vehicle>();
         }
+
+        // Ladda sparade fordon om filen existerar
+        LoadVehicles();
     }
 
     // Metod för att parkera fordon (Menyval 1)
@@ -23,19 +28,8 @@ public class ParkingGarage
             return;
         }
 
-        if (vehicle is Car)
-        {
-            if (parkingLot[spot].Count == 0)
-            {
-                parkingLot[spot].Add(vehicle);
-                Console.WriteLine($"Bil {vehicle.RegistrationNumber} har parkerats på plats {spot + 1}.");
-            }
-            else
-            {
-                Console.WriteLine("Platsen är redan upptagen.");
-            }
-        }
-        else if (vehicle is MC)
+        // Hantering för MC (max 2 MC per plats)
+        if (vehicle is MC)
         {
             if (parkingLot[spot].Count < 2)
             {
@@ -47,8 +41,17 @@ public class ParkingGarage
                 Console.WriteLine("Platsen är redan full för motorcyklar.");
             }
         }
-        // Hantering för andra fordonstyper kan läggas till här
+        // Hantering för alla andra fordonstyper
+        else
+        {
+            parkingLot[spot].Add(vehicle);
+            Console.WriteLine($"{vehicle.VehicleType} {vehicle.RegistrationNumber} har parkerats på plats {spot + 1}.");
+        }
+
+        SaveVehicles(); // Spara parkerat fordon
     }
+
+
 
     //Metod för att hitta ledig plats (Del av menyval 1)
     private int FindAvailableSpot(string vehicleType)
@@ -90,10 +93,18 @@ public class ParkingGarage
             }
             else
             {
-                Console.WriteLine($"Plats {i + 1}: {string.Join(", ", parkingLot[i].Select(v => v.GetInfo()))}");
+                Console.Write($"Plats {i + 1}: ");
+                foreach (var vehicle in parkingLot[i])
+                {
+                    // Skriv ut varje fordons info
+                    Console.Write($"{vehicle.GetInfo()}, ");
+                }
+                Console.WriteLine();  // Ny rad efter fordonens info
             }
         }
     }
+
+
 
     // Metod för att flytta fordon (Menyval 3)
     public void MoveVehicle(string registrationNumber, int newSpot)
@@ -150,7 +161,7 @@ public class ParkingGarage
     }
 
 
-   
+
     // Metod för att ta bort ett fordon (Menyval 5)
     public Vehicle RemoveVehicle(string registrationNumber)
     {
@@ -160,18 +171,81 @@ public class ParkingGarage
             {
                 if (parkingLot[i][j].RegistrationNumber == registrationNumber)
                 {
-                    Vehicle removedVehicle = parkingLot[i][j]; // Spara fordonet innan det tas bort
+                    Vehicle vehicleToRemove = parkingLot[i][j];
                     parkingLot[i].RemoveAt(j);
                     Console.WriteLine($"Fordon {registrationNumber} har tagits bort från plats {i + 1}.");
-                    return removedVehicle; // Returnera det borttagna fordonet
+
+                    SaveVehicles(); // Spara direkt efter borttagning
+                    return vehicleToRemove;  // Returnera det borttagna fordonet
                 }
             }
         }
         Console.WriteLine("Fordonet kunde inte hittas.");
-        return null; // Returnera null om fordonet inte hittades
+        return null; // Returnera null om inget fordon hittades
     }
 
 
+    public void SaveVehicles()
+    {
+        var vehiclesToSave = new List<VehicleSaveData>();
 
-   
+        // Gå igenom alla parkeringsplatser och spara fordonsdata
+        for (int i = 0; i < parkingLot.Length; i++)
+        {
+            foreach (var vehicle in parkingLot[i])
+            {
+                vehiclesToSave.Add(new VehicleSaveData
+                {
+                    RegistrationNumber = vehicle.RegistrationNumber,
+                    VehicleType = vehicle.VehicleType,
+                    ParkingTime = vehicle.ParkingTime,
+                    ParkingSpot = i
+                });
+            }
+        }
+
+        // Serialisera till JSON och spara i filen
+        string jsonData = JsonSerializer.Serialize(vehiclesToSave, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(saveFilePath, jsonData);
+        Console.WriteLine("Fordon har sparats.");
+    }
+
+
+    // Metod för att läsa in fordon från en JSON-fil
+    public void LoadVehicles()
+    {
+        if (File.Exists(saveFilePath))
+        {
+            string jsonData = File.ReadAllText(saveFilePath);
+            var loadedVehicles = JsonSerializer.Deserialize<List<VehicleSaveData>>(jsonData);
+
+            if (loadedVehicles != null)
+            {
+                foreach (var vehicleData in loadedVehicles)
+                {
+                    Vehicle vehicle;
+                    if (vehicleData.VehicleType == "CAR")
+                    {
+                        vehicle = new Car(vehicleData.RegistrationNumber);
+                    }
+                    else if (vehicleData.VehicleType == "MC")
+                    {
+                        vehicle = new MC(vehicleData.RegistrationNumber);
+                    }
+                    else
+                    {
+                        // Hantering för andra fordonstyper om det finns
+                        continue; // Om vi inte kan hantera fordonstypen, hoppa över det
+                    }
+
+                    vehicle.ParkingTime = vehicleData.ParkingTime;
+                    parkingLot[vehicleData.ParkingSpot].Add(vehicle);
+                }
+
+                Console.WriteLine("Fordon har laddats från fil.");
+            }
+        }
+    }
+
+
 }
