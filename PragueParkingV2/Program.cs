@@ -102,6 +102,11 @@ class Program
                         break;
 
                     case "6":
+                        EditPriceList(priceListFilePath, priceList);
+                        
+                        break;
+
+                    case "7":
                         exit = true;
                         Console.WriteLine("Avslutar programmet...");
                         break;
@@ -128,7 +133,8 @@ class Program
         Console.WriteLine("3. Flytta ett fordon");
         Console.WriteLine("4. Leta efter ett fordon");
         Console.WriteLine("5. Ta bort ett fordon");
-        Console.WriteLine("6. Avsluta");
+        Console.WriteLine("6. Redigera prislista");
+        Console.WriteLine("7. Avsluta");
         Console.WriteLine("Välj ett alternativ:");
     }
 
@@ -197,6 +203,46 @@ class Program
         // Om fordonstypen inte finns i prislistan
         Console.WriteLine($"Ingen prisinformation tillgänglig för fordonstypen {vehicle.VehicleType}.");
         return 0;
+    }
+
+    //Metod för att editera prislistan (Menyval 7)
+    static void EditPriceList(string priceListFilePath, Dictionary<string, int> priceList)
+    {
+        Console.WriteLine("\n--- REDIGERA PRISLISTA ---");
+
+        foreach (var vehicleType in priceList.Keys)
+        {
+            Console.WriteLine($"Nuvarande pris för {vehicleType}: {priceList[vehicleType]} CZK per timme.");
+            Console.Write($"Ange nytt pris för {vehicleType}: ");
+            string input = Console.ReadLine();
+
+            if (int.TryParse(input, out int newPrice))
+            {
+                priceList[vehicleType] = newPrice;
+                Console.WriteLine($"Priset för {vehicleType} har uppdaterats till {newPrice} CZK.");
+            }
+            else
+            {
+                Console.WriteLine("Ogiltigt pris, försök igen.");
+            }
+        }
+
+        // Spara den uppdaterade prislistan till fil
+        SavePriceList(priceListFilePath, priceList);
+    }
+
+    //Metod för att spara en ny prislista (Del av menyval 7)
+    static void SavePriceList(string filePath, Dictionary<string, int> priceList)
+    {
+        var lines = new List<string>();
+
+        foreach (var item in priceList)
+        {
+            lines.Add($"{item.Key}={item.Value}");  // Skriv fordonstyp=pris
+        }
+
+        File.WriteAllLines(filePath, lines);
+        Console.WriteLine("Prislistan har sparats.");
     }
 
 
