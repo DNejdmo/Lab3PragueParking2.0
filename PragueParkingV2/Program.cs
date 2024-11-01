@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Spectre.Console;
 
 
 class Program
@@ -18,125 +19,114 @@ class Program
 
         if (config != null && priceList != null)
         {
-            //// Visa information om antal parkeringsplatser och fordonstyper
-            //Console.WriteLine($"Antal parkeringsplatser: {config.ParkingSpots}");
-            //Console.WriteLine("Fordonstyper och deras storlekar:");
-            //foreach (var vehicleType in config.VehicleTypes)
-            //{
-            //    Console.WriteLine($"- {vehicleType.Type}: {vehicleType.Size}");
-            //}
+           
 
             ParkingGarage garage = new ParkingGarage(config.ParkingSpots, config.VehicleTypes);
             bool exit = false;
-
             while (!exit)
             {
-                ShowMenu();
-                string choice = Console.ReadLine();
+                string choice = AnsiConsole.Prompt(
+                   new SelectionPrompt<string>()
+                       .Title("[bold blue]Välj ett alternativ:[/]")
+                       .AddChoices(new[]
+                       {
+                            "1. Parkera ett fordon",
+                            "2. Visa parkeringsplatser",
+                            "3. Flytta ett fordon",
+                            "4. Leta efter ett fordon",
+                            "5. Ta bort ett fordon",
+                            "6. Redigera prislista",
+                            "7. Avsluta"
+                       }));
 
-                switch (choice)
-                {
-                    case "1":
-                        Console.WriteLine("Ange fordonstyp (CAR/MC):");
-                        string vehicleType = Console.ReadLine().ToUpper();
+            switch (choice[0]) // Kollar första tecknet för valet
+            {
+                case '1':
+                    Console.WriteLine("Ange fordonstyp (CAR/MC):");
+                    string vehicleType = Console.ReadLine().ToUpper();
 
-                        string registrationNumber;
-                        do
+                    string registrationNumber;
+                    do
+                    {
+                        Console.WriteLine("Ange registreringsnummer (max 10 tecken):");
+                        registrationNumber = Console.ReadLine().ToUpper();
+
+                        if (registrationNumber.Length > 10)
                         {
-                            Console.WriteLine("Ange registreringsnummer (max 10 tecken):");
-                            registrationNumber = Console.ReadLine().ToUpper();
-
-                            if (registrationNumber.Length > 10)
-                            {
-                                Console.WriteLine("Registreringsnumret får vara max 10 tecken. Försök igen.");
-                            }
-
-                        } while (registrationNumber.Length > 10);
-
-                        Vehicle vehicle;
-                        if (vehicleType == "CAR")
-                        {
-                            vehicle = new Car(registrationNumber);
-                        }
-                        else if (vehicleType == "MC")
-                        {
-                            vehicle = new MC(registrationNumber);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Ogiltig fordonstyp."); //Ändra här för att kunna parkera andra fordonstyper
-                            break;
+                            Console.WriteLine("Registreringsnumret får vara max 10 tecken. Försök igen.");
                         }
 
-                        garage.ParkVehicle(vehicle);
-                        break;
+                    } while (registrationNumber.Length > 10);
 
-                    case "2":
-                        garage.ShowParkingLot();
+                    Vehicle vehicle;
+                    if (vehicleType == "CAR")
+                    {
+                        vehicle = new Car(registrationNumber);
+                    }
+                    else if (vehicleType == "MC")
+                    {
+                        vehicle = new MC(registrationNumber);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Ogiltig fordonstyp.");
                         break;
+                    }
 
-                    case "3":
-                        Console.WriteLine("Ange registreringsnummer för fordonet som ska flyttas:");
-                        string regToMove = Console.ReadLine().ToUpper();
-                        Console.WriteLine("Ange ny plats att flytta fordonet till:");
-                        int newSpot = int.Parse(Console.ReadLine());
-                        garage.MoveVehicle(regToMove, newSpot);
-                        break;
+                    garage.ParkVehicle(vehicle);
+                    break;
 
-                    case "4":
-                        Console.WriteLine("Ange registreringsnummer för fordonet du söker:");
-                        string regToFind = Console.ReadLine().ToUpper();
-                        garage.FindVehicle(regToFind);
-                        break;
+                case '2':
+                    garage.ShowParkingLot();
+                    break;
 
-                    case "5":
-                        Console.WriteLine("Ange registreringsnummer på fordonet som ska lämna:");
-                        string regNumber = Console.ReadLine().ToUpper();
+                case '3':
+                    Console.WriteLine("Ange registreringsnummer för fordonet som ska flyttas:");
+                    string regToMove = Console.ReadLine().ToUpper();
+                    Console.WriteLine("Ange ny plats att flytta fordonet till:");
+                    int newSpot = int.Parse(Console.ReadLine());
+                    garage.MoveVehicle(regToMove, newSpot);
+                    break;
 
-                        Vehicle vehicleToRemove = garage.RemoveVehicle(regNumber);
-                        if (vehicleToRemove != null)
-                        {
-                            int price = CalculateParkingPrice(vehicleToRemove, priceList);
-                            Console.WriteLine($"Fordonet {vehicleToRemove.RegistrationNumber} ska betala {price} CZK.");
-                        }
-                        break;
+                case '4':
+                    Console.WriteLine("Ange registreringsnummer för fordonet du söker:");
+                    string regToFind = Console.ReadLine().ToUpper();
+                    garage.FindVehicle(regToFind);
+                    break;
 
-                    case "6":
-                        EditPriceList(priceListFilePath, priceList);
-                        
-                        break;
+                case '5':
+                    Console.WriteLine("Ange registreringsnummer på fordonet som ska lämna:");
+                    string regNumber = Console.ReadLine().ToUpper();
 
-                    case "7":
-                        exit = true;
-                        Console.WriteLine("Avslutar programmet...");
-                        break;
+                    Vehicle vehicleToRemove = garage.RemoveVehicle(regNumber);
+                    if (vehicleToRemove != null)
+                    {
+                        int price = CalculateParkingPrice(vehicleToRemove, priceList);
+                        Console.WriteLine($"Fordonet {vehicleToRemove.RegistrationNumber} ska betala {price} CZK.");
+                    }
+                    break;
 
-                    default:
-                        Console.WriteLine("Felaktigt val, försök igen.");
-                        break;
-                }
+                case '6':
+                    EditPriceList(priceListFilePath, priceList);
+                    break;
+
+                case '7':
+                    exit = true;
+                    AnsiConsole.MarkupLine("[bold red]Avslutar programmet...[/]");
+                    break;
+
+                default:
+                    Console.WriteLine("Felaktigt val, försök igen.");
+                    break;
             }
         }
+    }
         else
         {
-            Console.WriteLine("Misslyckades med att läsa in konfigurationen.");
+            AnsiConsole.MarkupLine("[red]Misslyckades med att läsa in konfigurationen.[/]");
         }
     }
 
-
-    // Metod för att visa menyn
-    static void ShowMenu()
-    {
-        Console.WriteLine("\n--- PARKERINGSGARAGE MENY ---");
-        Console.WriteLine("1. Parkera ett fordon");
-        Console.WriteLine("2. Visa parkeringsplatser");
-        Console.WriteLine("3. Flytta ett fordon");
-        Console.WriteLine("4. Leta efter ett fordon");
-        Console.WriteLine("5. Ta bort ett fordon");
-        Console.WriteLine("6. Redigera prislista");
-        Console.WriteLine("7. Avsluta");
-        Console.WriteLine("Välj ett alternativ:");
-    }
 
     // Metod för att läsa in JSON-konfiguration
     public static Configuration LoadConfiguration(string filePath)

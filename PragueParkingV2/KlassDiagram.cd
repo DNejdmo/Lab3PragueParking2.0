@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="Program" Collapsed="true">
-    <Position X="1.25" Y="0.5" Width="1.5" />
+    <Position X="0.5" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ABAAAAABAAAAAAAAAABAAIAAAAAAAAAAAAAQBAABAAA=</HashCode>
+      <HashCode>ABAAAAABAAAAAAAAAABAAIAAAAAAAAAAAAAQBAAAAAA=</HashCode>
       <FileName>Program.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -17,7 +17,7 @@
   <Class Name="PragueParkingV2.Vehicle" Collapsed="true">
     <Position X="11.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAQAAAAAAAAAAAEAAAAAAAAACAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAgAAAAQAAAAAAAAAAAEAAAAAAAAACAAA=</HashCode>
       <FileName>Vehicle.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -29,7 +29,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="ParkingGarage" Collapsed="true">
-    <Position X="1.25" Y="1.25" Width="1.5" />
+    <Position X="2.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>ACAEAAAAAwAAAAACAAAAAgAIBAAAAAAAAAAAIAAABAA=</HashCode>
       <FileName>ParkingGarage.cs</FileName>
