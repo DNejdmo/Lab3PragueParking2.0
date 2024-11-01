@@ -2,8 +2,7 @@
 
 public class MC : Vehicle
 {
-    public MC(string registrationNumber)
-        : base(registrationNumber, "MC")
+    public MC(string registrationNumber) : base(registrationNumber, "MC", 2)
     {
     }
 

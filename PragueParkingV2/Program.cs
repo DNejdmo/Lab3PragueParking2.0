@@ -18,13 +18,13 @@ class Program
 
         if (config != null && priceList != null)
         {
-            // Visa information om antal parkeringsplatser och fordonstyper
-            Console.WriteLine($"Antal parkeringsplatser: {config.ParkingSpots}");
-            Console.WriteLine("Fordonstyper och deras storlekar:");
-            foreach (var vehicleType in config.VehicleTypes)
-            {
-                Console.WriteLine($"- {vehicleType.Type}: {vehicleType.Size}");
-            }
+            //// Visa information om antal parkeringsplatser och fordonstyper
+            //Console.WriteLine($"Antal parkeringsplatser: {config.ParkingSpots}");
+            //Console.WriteLine("Fordonstyper och deras storlekar:");
+            //foreach (var vehicleType in config.VehicleTypes)
+            //{
+            //    Console.WriteLine($"- {vehicleType.Type}: {vehicleType.Size}");
+            //}
 
             ParkingGarage garage = new ParkingGarage(config.ParkingSpots, config.VehicleTypes);
             bool exit = false;
@@ -64,7 +64,7 @@ class Program
                         }
                         else
                         {
-                            Console.WriteLine("Ogiltig fordonstyp.");
+                            Console.WriteLine("Ogiltig fordonstyp."); //Ändra här för att kunna parkera andra fordonstyper
                             break;
                         }
 
@@ -238,7 +238,7 @@ class Program
 
         foreach (var item in priceList)
         {
-            lines.Add($"{item.Key}={item.Value}");  // Skriv fordonstyp=pris
+            lines.Add($"{item.Key}={item.Value}");  // Skriver fordonstyp=pris
         }
 
         File.WriteAllLines(filePath, lines);
