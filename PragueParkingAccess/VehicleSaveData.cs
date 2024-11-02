@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PragueParkingV2
+
+using PragueParkingAccess;
+namespace PragueParkingAccess
+
 {
     public class VehicleSaveData
     {

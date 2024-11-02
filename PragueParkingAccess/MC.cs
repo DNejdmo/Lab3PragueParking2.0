@@ -1,4 +1,6 @@
-﻿using PragueParkingV2;
+﻿using PragueParkingAccess;
+namespace PragueParkingAccess
+{ 
 
 public class MC : Vehicle
 {
@@ -12,3 +14,4 @@ public class MC : Vehicle
     }
 }
 
+}

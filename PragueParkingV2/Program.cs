@@ -1,12 +1,7 @@
-﻿using PragueParkingV2;
-using Spectre.Console;
-using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using Spectre.Console;
 using System.Text.Json;
-using Spectre.Console;
 
-
+using PragueParkingAccess;
 class Program
 {
     static void Main(string[] args)
