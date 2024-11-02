@@ -1,4 +1,5 @@
 ﻿using PragueParkingV2;
+using Spectre.Console;
 using System.Text.Json;
 
 public class ParkingGarage
@@ -21,31 +22,29 @@ public class ParkingGarage
     // Metod för att parkera fordon (Menyval 1)
     public void ParkVehicle(Vehicle vehicle)
     {
-        int spot = FindAvailableSpot(vehicle.VehicleType);
-        if (spot == -1)
+        int startSpot = FindAvailableSpots(vehicle.Size);
+
+        if (startSpot == -1)
         {
             Console.WriteLine("Ingen ledig plats för fordonet.");
             return;
         }
 
-        // Hantering för MC (max 2 MC per plats)
-        if (vehicle is MC)
+        // Om fordonet får plats på en befintlig plats, parkera det där
+        if (parkingLot[startSpot].Sum(v => v.Size) + vehicle.Size <= 4)
         {
-            if (parkingLot[spot].Count < 2)
-            {
-                parkingLot[spot].Add(vehicle);
-                Console.WriteLine($"MC {vehicle.RegistrationNumber} har parkerats på plats {spot + 1}.");
-            }
-            else
-            {
-                Console.WriteLine("Platsen är redan full för motorcyklar.");
-            }
+            parkingLot[startSpot].Add(vehicle);
+            Console.WriteLine($"{vehicle.VehicleType} {vehicle.RegistrationNumber} har parkerats på plats {startSpot + 1}.");
         }
-        // Hantering för alla andra fordonstyper
         else
         {
-            parkingLot[spot].Add(vehicle);
-            Console.WriteLine($"{vehicle.VehicleType} {vehicle.RegistrationNumber} har parkerats på plats {spot + 1}.");
+            // Annars, parkera fordonet över flera tomma platser
+            int requiredSpots = (int)Math.Ceiling(vehicle.Size / 4.0);
+            for (int i = startSpot; i < startSpot + requiredSpots; i++)
+            {
+                parkingLot[i].Add(vehicle);
+            }
+            Console.WriteLine($"{vehicle.VehicleType} {vehicle.RegistrationNumber} har parkerats från plats {startSpot + 1} till {startSpot + requiredSpots}.");
         }
 
         SaveVehicles(); // Spara parkerat fordon
@@ -53,58 +52,115 @@ public class ParkingGarage
 
 
 
+
+
+
     //Metod för att hitta ledig plats (Del av menyval 1)
-    private int FindAvailableSpot(string vehicleType)
+    private int FindAvailableSpots(int vehicleSize)
     {
-        // Om MC, först leta efter en plats som redan har en motorcykel men inte är full
-        if (vehicleType == "MC")
+        // Försök först att hitta en plats med tillräckligt med ledigt utrymme för mindre fordon
+        for (int i = 0; i < parkingLot.Length; i++)
         {
-            for (int i = 0; i < parkingLot.Length; i++)
+            int currentSizeUsed = parkingLot[i].Sum(v => v.Size);
+            int availableSize = 4 - currentSizeUsed; // Anta 4 som standardstorlek för en parkeringsplats
+
+            if (availableSize >= vehicleSize)
             {
-                if (parkingLot[i].Count > 0 && parkingLot[i][0] is MC && parkingLot[i].Count < 2)
-                {
-                    return i; // Returnera den platsen
-                }
+                return i; // Returnera en befintlig plats med tillräckligt med utrymme
             }
         }
 
-        // Leta efter en helt tom plats
+        // Om inget delat utrymme hittades, leta efter en sekvens av helt tomma platser för större fordon
+        int requiredSpots = (int)Math.Ceiling(vehicleSize / 4.0);
+        int consecutiveEmpty = 0;
+
         for (int i = 0; i < parkingLot.Length; i++)
         {
             if (parkingLot[i].Count == 0)
             {
-                return i; // Ledig plats
+                consecutiveEmpty++;
+                if (consecutiveEmpty == requiredSpots)
+                {
+                    return i - requiredSpots + 1; // Returnera startpositionen
+                }
+            }
+            else
+            {
+                consecutiveEmpty = 0; // Återställ om sekvensen bryts
             }
         }
-        return -1; // Ingen ledig plats
+
+        return -1; // Ingen ledig sekvens hittades
     }
-
-
 
     // Metod för att visa parkeringsplatser (Menyval 2)
     public void ShowParkingLot()
     {
-        Console.WriteLine("\n--- Parkeringsöversikt ---");
-        for (int i = 0; i < parkingLot.Length; i++)
+        int columns = 10;  
+        int totalSpots = 100;  
+        var table = new Table()
+            .NoBorder()  
+            .Collapse()  
+            .HideHeaders();  
+
+        
+        for (int i = 0; i < columns; i++)
         {
-            if (parkingLot[i].Count == 0)
+            table.AddColumn(""); 
+        }
+
+        var rowContent = new List<string>();
+
+        // Gå igenom alla parkeringsplatser
+        for (int spotIndex = 0; spotIndex < totalSpots; spotIndex++)
+        {
+            string cellContent;
+
+            // Om platsen är upptagen
+            if (spotIndex < parkingLot.Length && parkingLot[spotIndex].Count > 0)
             {
-                Console.WriteLine($"Plats {i + 1}: [TOM]");
+                var vehiclesOnSpot = parkingLot[spotIndex];
+
+                // Om det finns en bil eller två MC
+                if (vehiclesOnSpot.Count == 1)
+                {
+                    cellContent = $"Plats {spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}";
+                }
+                else
+                {
+                    cellContent = $"Plats {spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}, {Markup.Escape(vehiclesOnSpot[1].RegistrationNumber)}";
+                }
             }
             else
             {
-                Console.Write($"Plats {i + 1}: ");
-                foreach (var vehicle in parkingLot[i])
-                {
-                    // Skriv ut varje fordons info
-                    Console.Write($"{vehicle.GetInfo()}, ");
-                }
-                Console.WriteLine();  // Ny rad efter fordonens info
+                // Om platsen är tom
+                cellContent = $"Plats {spotIndex + 1}\nTOM";
+            }
+
+            
+            rowContent.Add(cellContent);
+
+            
+            if (rowContent.Count == columns)
+            {
+                table.AddRow(rowContent.ToArray());
+                rowContent.Clear();
             }
         }
+
+        // Lägg till sista raden om det finns platser kvar
+        if (rowContent.Count > 0)
+        {
+            while (rowContent.Count < columns)
+            {
+                rowContent.Add("EMPTY");  // Fyll tomma celler om nödvändigt
+            }
+            table.AddRow(rowContent.ToArray());
+        }
+
+        // Skriv ut tabellen med Spectre.Console
+        AnsiConsole.Write(table);
     }
-
-
 
     // Metod för att flytta fordon (Menyval 3)
     public void MoveVehicle(string registrationNumber, int newSpot)
@@ -142,7 +198,6 @@ public class ParkingGarage
     }
 
 
-
     // Metod för att leta efter ett fordon (Menyval 4)
     public void FindVehicle(string registrationNumber)
     {
@@ -159,8 +214,6 @@ public class ParkingGarage
         }
         Console.WriteLine("Fordonet kunde inte hittas.");
     }
-
-
 
     // Metod för att ta bort ett fordon (Menyval 5)
     public Vehicle RemoveVehicle(string registrationNumber)
@@ -183,7 +236,6 @@ public class ParkingGarage
         Console.WriteLine("Fordonet kunde inte hittas.");
         return null; // Returnera null om inget fordon hittades
     }
-
 
     public void SaveVehicles()
     {

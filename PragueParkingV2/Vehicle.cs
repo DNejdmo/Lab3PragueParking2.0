@@ -10,12 +10,14 @@ namespace PragueParkingV2
     {
         public string RegistrationNumber { get; set; }
         public string VehicleType { get; set; }
-        public DateTime ParkingTime { get; set; }  // Tid när fordonet parkerades
+        public int Size { get; set; }
+        public DateTime ParkingTime { get; set; }
 
-        protected Vehicle(string registrationNumber, string vehicleType)
+        protected Vehicle(string registrationNumber, string vehicleType, int size)
         {
             RegistrationNumber = registrationNumber;
             VehicleType = vehicleType;
+            Size = size; 
             ParkingTime = DateTime.Now;
         }
 
@@ -24,5 +26,6 @@ namespace PragueParkingV2
             return $"{VehicleType} {RegistrationNumber}";
         }
     }
+
 
 }
