@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "RegistrationNumber": "CAR001",
+    "VehicleType": "CAR",
+    "ParkingTime": "2024-11-03T19:37:10.3077881+01:00",
+    "ParkingSpot": 0
+  }
+]

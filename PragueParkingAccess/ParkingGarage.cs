@@ -211,7 +211,8 @@ namespace PragueParkingAccess
                     if (parkingLot[i][j].RegistrationNumber == registrationNumber)
                     {
                         // Flytta fordonet om den nya platsen är ledig
-                        if (parkingLot[newSpot].Count == 0 || (parkingLot[newSpot][0] is MC && parkingLot[newSpot].Count < 2))
+                        if (parkingLot[newSpot].Count == 0 ||
+                    (parkingLot[i][j] is MC && parkingLot[newSpot][0] is MC && parkingLot[newSpot].Count < 2))
                         {
                             parkingLot[newSpot].Add(parkingLot[i][j]);
                             parkingLot[i].RemoveAt(j);
@@ -290,7 +291,7 @@ namespace PragueParkingAccess
             // Serialisera till JSON och spara i filen
             string jsonData = JsonSerializer.Serialize(vehiclesToSave, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(saveFilePath, jsonData);
-            Console.WriteLine("Vehicle have been saved.");
+            Console.WriteLine("Parkinglot have been saved to file.");
         }
 
 
