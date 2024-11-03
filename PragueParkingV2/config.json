@@ -1,5 +1,7 @@
 {
   "ParkingSpots": 100,
+  "Columns": 10,
+  "ParkingSpotSize": 4,
   "VehicleTypes": [
     {
       "Type": "CAR",

@@ -8,9 +8,11 @@ namespace PragueParkingAccess
     {
         private List<Vehicle>[] parkingLot;
         private string saveFilePath = "../../../parkingData.json"; // Fil där data sparas när programmet stängs
+        private int parkingSpotSize;
 
-        public ParkingGarage(int spots, List<VehicleType> vehicleTypes)
+        public ParkingGarage(int spots, int spotSize, List<VehicleType> vehicleTypes)
         {
+            parkingSpotSize = spotSize;
             parkingLot = new List<Vehicle>[spots];
             for (int i = 0; i < parkingLot.Length; i++)
             {
@@ -24,58 +26,56 @@ namespace PragueParkingAccess
         // Metod för att parkera fordon (Menyval 1)
         public void ParkVehicle(Vehicle vehicle)
         {
-            int startSpot = FindAvailableSpots(vehicle.Size);
+            int startSpot = FindAvailableSpots(vehicle);
 
             if (startSpot == -1)
             {
-                Console.WriteLine("Ingen ledig plats för fordonet.");
+                Console.WriteLine("No available parking spot for the vehicle.");
                 return;
             }
 
-            // Om fordonet får plats på en befintlig plats, parkera det där
-            if (parkingLot[startSpot].Sum(v => v.Size) + vehicle.Size <= 4)
+            int requiredSpots = (int)Math.Ceiling(vehicle.Size / (double)parkingSpotSize);
+
+            // Parkera fordonet över de nödvändiga platserna
+            for (int i = startSpot; i < startSpot + requiredSpots; i++)
             {
-                parkingLot[startSpot].Add(vehicle);
-                Console.WriteLine($"{vehicle.VehicleType} {vehicle.RegistrationNumber} har parkerats på plats {startSpot + 1}.");
+                parkingLot[i].Add(vehicle);
+            }
+
+            // Välj meddelande beroende på antal platser som fordonet upptar
+            if (requiredSpots == 1)
+            {
+                Console.WriteLine($"{vehicle.VehicleType} {vehicle.RegistrationNumber} has been parked on parking spot {startSpot + 1}.");
             }
             else
             {
-                // Annars, parkera fordonet över flera tomma platser
-                int requiredSpots = (int)Math.Ceiling(vehicle.Size / 4.0);
-                for (int i = startSpot; i < startSpot + requiredSpots; i++)
-                {
-                    parkingLot[i].Add(vehicle);
-                }
-                Console.WriteLine($"{vehicle.VehicleType} {vehicle.RegistrationNumber} har parkerats från plats {startSpot + 1} till {startSpot + requiredSpots}.");
+                Console.WriteLine($"{vehicle.VehicleType} {vehicle.RegistrationNumber} has been parked from spot {startSpot + 1} to {startSpot + requiredSpots}.");
             }
 
-            SaveVehicles(); // Spara parkerat fordon
+            SaveVehicles();
         }
 
-
-
-
-
-
-        //Metod för att hitta ledig plats (Del av menyval 1)
-        private int FindAvailableSpots(int vehicleSize)
+        // Metod för att hitta ledig plats (Del av menyval 1)
+        private int FindAvailableSpots(Vehicle vehicle)
         {
-            // Försök först att hitta en plats med tillräckligt med ledigt utrymme för mindre fordon
-            for (int i = 0; i < parkingLot.Length; i++)
-            {
-                int currentSizeUsed = parkingLot[i].Sum(v => v.Size);
-                int availableSize = 4 - currentSizeUsed; // Anta 4 som standardstorlek för en parkeringsplats
+            int vehicleSize = vehicle.Size;
+            int requiredSpots = (int)Math.Ceiling(vehicleSize / (double)parkingSpotSize);
 
-                if (availableSize >= vehicleSize)
+            // Om fordonet är mindre än en plats, försök hitta en befintlig delad plats
+            if (vehicleSize <= parkingSpotSize / 2)
+            {
+                for (int i = 0; i < parkingLot.Length; i++)
                 {
-                    return i; // Returnera en befintlig plats med tillräckligt med utrymme
+                    int currentSizeUsed = parkingLot[i].Sum(v => v.Size);
+                    if (currentSizeUsed + vehicleSize <= parkingSpotSize)
+                    {
+                        return i; // Returnera en befintlig plats som kan dela utrymme
+                    }
                 }
             }
 
-            // Om inget delat utrymme hittades, leta efter en sekvens av helt tomma platser för större fordon
-            int requiredSpots = (int)Math.Ceiling(vehicleSize / 4.0);
+            // Om delad plats inte hittades, sök efter en sekvens av helt tomma platser för större fordon
             int consecutiveEmpty = 0;
-
             for (int i = 0; i < parkingLot.Length; i++)
             {
                 if (parkingLot[i].Count == 0)
@@ -83,28 +83,39 @@ namespace PragueParkingAccess
                     consecutiveEmpty++;
                     if (consecutiveEmpty == requiredSpots)
                     {
-                        return i - requiredSpots + 1; // Returnera startpositionen
+                        return i - requiredSpots + 1; // Returnera startpositionen för tomma platser
                     }
                 }
                 else
                 {
-                    consecutiveEmpty = 0; // Återställ om sekvensen bryts
+                    consecutiveEmpty = 0;
                 }
             }
 
-            return -1; // Ingen ledig sekvens hittades
+            return -1; // Ingen lämplig plats hittades
+        }
+
+        private Configuration LoadConfig()
+        {
+            string configPath = "../../../config.json"; // justera sökvägen om nödvändigt
+            if (File.Exists(configPath))
+            {
+                string jsonData = File.ReadAllText(configPath);
+                return JsonSerializer.Deserialize<Configuration>(jsonData);
+            }
+            return new Configuration { ParkingSpots = 100, Columns = 10 }; // standardvärden om configuration saknas
         }
 
         // Metod för att visa parkeringsplatser (Menyval 2)
         public void ShowParkingLot()
         {
-            int columns = 10;
-            int totalSpots = 100;
+            Configuration config = LoadConfig();
+            int columns = config.Columns;
+            int totalSpots = config.ParkingSpots;
             var table = new Table()
-                .NoBorder()
-                .Collapse()
-                .HideHeaders();
+                .NoBorder();
 
+            AnsiConsole.MarkupLine("[red]Red = Occupied[/], [yellow]Yellow = There is still room for one MC[/], [green]Green = Empty[/]");
 
             for (int i = 0; i < columns; i++)
             {
@@ -116,38 +127,56 @@ namespace PragueParkingAccess
             // Gå igenom alla parkeringsplatser
             for (int spotIndex = 0; spotIndex < totalSpots; spotIndex++)
             {
-                string cellContent;
+                string cellContent = "";
 
                 // Om platsen är upptagen
                 if (spotIndex < parkingLot.Length && parkingLot[spotIndex].Count > 0)
                 {
                     var vehiclesOnSpot = parkingLot[spotIndex];
 
-                    // Om det finns en bil eller två MC
+                    // Om det finns 1 fordon
                     if (vehiclesOnSpot.Count == 1)
                     {
-                        cellContent = $"Plats {spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}";
+                        // Om det är en motorcykel
+                        if (vehiclesOnSpot[0].VehicleType == "MC")
+                        {
+                            cellContent = $"[yellow]#{spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}[/]";
+                        }
+                        else
+                        {
+                            // Det är en bil
+                            cellContent = $"[red]#{spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}[/]";
+                        }
                     }
-                    else
+                    // Om det finns två MC
+                    else if (vehiclesOnSpot.Count == 2)
                     {
-                        cellContent = $"Plats {spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}, {Markup.Escape(vehiclesOnSpot[1].RegistrationNumber)}";
+                        // Om de är motorcyklar(kan bara vara det just nu, men skulle kunna vara cykel i framtiden)
+                        if (vehiclesOnSpot.All(v => v.VehicleType == "MC"))
+                        {
+                            cellContent = $"[red]#{spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}, {Markup.Escape(vehiclesOnSpot[1].RegistrationNumber)}[/]";
+                        }
+                        else
+                        {
+                            
+                            cellContent = $"[red]#{spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}, {Markup.Escape(vehiclesOnSpot[1].RegistrationNumber)}[/]";
+                        }
                     }
                 }
                 else
                 {
                     // Om platsen är tom
-                    cellContent = $"Plats {spotIndex + 1}\nTOM";
+                    cellContent = $"[green]#{spotIndex + 1}\nEmpty[/]";
                 }
 
-
                 rowContent.Add(cellContent);
-
 
                 if (rowContent.Count == columns)
                 {
                     table.AddRow(rowContent.ToArray());
                     rowContent.Clear();
                 }
+               
             }
 
             // Lägg till sista raden om det finns platser kvar
@@ -169,7 +198,7 @@ namespace PragueParkingAccess
         {
             if (newSpot < 1 || newSpot > parkingLot.Length)
             {
-                Console.WriteLine("Ogiltigt platsnummer.");
+                Console.WriteLine("Invalid number.");
                 return;
             }
             newSpot--; // Justera för 0-indexerad array
@@ -186,17 +215,17 @@ namespace PragueParkingAccess
                         {
                             parkingLot[newSpot].Add(parkingLot[i][j]);
                             parkingLot[i].RemoveAt(j);
-                            Console.WriteLine($"Fordon {registrationNumber} har flyttats till plats {newSpot + 1}.");
+                            Console.WriteLine($"Vehicle {registrationNumber} has been moved to spot {newSpot + 1}.");
                         }
                         else
                         {
-                            Console.WriteLine("Den nya platsen är inte tillgänglig.");
+                            Console.WriteLine("The new spot is not available.");
                         }
                         return;
                     }
                 }
             }
-            Console.WriteLine("Fordonet kunde inte hittas.");
+            Console.WriteLine("The vehicle could not be found.");
         }
 
 
@@ -209,12 +238,12 @@ namespace PragueParkingAccess
                 {
                     if (vehicle.RegistrationNumber == registrationNumber)
                     {
-                        Console.WriteLine($"Fordon {registrationNumber} hittades på plats {i + 1}.");
+                        Console.WriteLine($"Vehicle {registrationNumber} was found in spot {i + 1}.");
                         return;
                     }
                 }
             }
-            Console.WriteLine("Fordonet kunde inte hittas.");
+            Console.WriteLine("The vehicle could not be found.");
         }
 
         // Metod för att ta bort ett fordon (Menyval 5)
@@ -228,14 +257,14 @@ namespace PragueParkingAccess
                     {
                         Vehicle vehicleToRemove = parkingLot[i][j];
                         parkingLot[i].RemoveAt(j);
-                        Console.WriteLine($"Fordon {registrationNumber} har tagits bort från plats {i + 1}.");
+                        Console.WriteLine($"Vehicle {registrationNumber} has been removed from spot {i + 1}.");
 
                         SaveVehicles(); // Spara direkt efter borttagning
                         return vehicleToRemove;  // Returnera det borttagna fordonet
                     }
                 }
             }
-            Console.WriteLine("Fordonet kunde inte hittas.");
+            Console.WriteLine("The vehicle could not be found.");
             return null; // Returnera null om inget fordon hittades
         }
 
@@ -261,7 +290,7 @@ namespace PragueParkingAccess
             // Serialisera till JSON och spara i filen
             string jsonData = JsonSerializer.Serialize(vehiclesToSave, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(saveFilePath, jsonData);
-            Console.WriteLine("Fordon har sparats.");
+            Console.WriteLine("Vehicle have been saved.");
         }
 
 
@@ -296,12 +325,9 @@ namespace PragueParkingAccess
                         parkingLot[vehicleData.ParkingSpot].Add(vehicle);
                     }
 
-                    Console.WriteLine("Fordon har laddats från fil.");
+                    Console.WriteLine("Parked vehicles have been loaded from file.");
                 }
             }
         }
-
-
     }
-
 }

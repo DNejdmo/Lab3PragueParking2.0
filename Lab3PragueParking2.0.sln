@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PragueParkingV2", "PraguePa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PragueParkingAccess", "PragueParkingAccess\PragueParkingAccess.csproj", "{08338A2C-374A-4C1E-9E03-F49720FE1AE9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PragueParkingTests", "PragueParkingTests\PragueParkingTests.csproj", "{365352D9-10F0-4B06-ADB8-9948372C1DA5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{08338A2C-374A-4C1E-9E03-F49720FE1AE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08338A2C-374A-4C1E-9E03-F49720FE1AE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08338A2C-374A-4C1E-9E03-F49720FE1AE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{365352D9-10F0-4B06-ADB8-9948372C1DA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{365352D9-10F0-4B06-ADB8-9948372C1DA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{365352D9-10F0-4B06-ADB8-9948372C1DA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{365352D9-10F0-4B06-ADB8-9948372C1DA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
