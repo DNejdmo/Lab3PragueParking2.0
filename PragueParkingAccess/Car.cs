@@ -9,7 +9,7 @@ namespace PragueParkingAccess
 
         public override string GetInfo()
         {
-            return $"Bil {RegistrationNumber}";
+            return $"Car {RegistrationNumber}";
         }
     }
 

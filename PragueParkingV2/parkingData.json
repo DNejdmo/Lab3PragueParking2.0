@@ -1,8 +1,104 @@
 [
   {
+    "RegistrationNumber": "MC001",
+    "VehicleType": "MC",
+    "ParkingTime": "2024-11-06T14:46:36.2307636+01:00",
+    "ParkingSpot": 1
+  },
+  {
+    "RegistrationNumber": "MC003",
+    "VehicleType": "MC",
+    "ParkingTime": "2024-11-06T14:53:15.6580931+01:00",
+    "ParkingSpot": 1
+  },
+  {
+    "RegistrationNumber": "MC002",
+    "VehicleType": "MC",
+    "ParkingTime": "2024-11-06T14:46:48.5746199+01:00",
+    "ParkingSpot": 2
+  },
+  {
+    "RegistrationNumber": "MC004",
+    "VehicleType": "MC",
+    "ParkingTime": "2024-11-06T14:53:34.4957317+01:00",
+    "ParkingSpot": 2
+  },
+  {
+    "RegistrationNumber": "MC005",
+    "VehicleType": "MC",
+    "ParkingTime": "2024-11-06T14:54:13.9280337+01:00",
+    "ParkingSpot": 3
+  },
+  {
+    "RegistrationNumber": "BIKE001",
+    "VehicleType": "BICYCLE",
+    "ParkingTime": "2024-11-06T14:54:23.4976877+01:00",
+    "ParkingSpot": 3
+  },
+  {
+    "RegistrationNumber": "BIKE002",
+    "VehicleType": "BICYCLE",
+    "ParkingTime": "2024-11-06T14:54:37.4025083+01:00",
+    "ParkingSpot": 3
+  },
+  {
+    "RegistrationNumber": "BIKE004",
+    "VehicleType": "BICYCLE",
+    "ParkingTime": "2024-11-06T14:55:00.7303515+01:00",
+    "ParkingSpot": 4
+  },
+  {
+    "RegistrationNumber": "BIKE005",
+    "VehicleType": "BICYCLE",
+    "ParkingTime": "2024-11-06T14:55:10.2263481+01:00",
+    "ParkingSpot": 4
+  },
+  {
+    "RegistrationNumber": "BIKE006",
+    "VehicleType": "BICYCLE",
+    "ParkingTime": "2024-11-06T14:56:29.4762351+01:00",
+    "ParkingSpot": 4
+  },
+  {
+    "RegistrationNumber": "MC006",
+    "VehicleType": "MC",
+    "ParkingTime": "2024-11-06T14:55:48.5149596+01:00",
+    "ParkingSpot": 5
+  },
+  {
+    "RegistrationNumber": "CAR002",
+    "VehicleType": "CAR",
+    "ParkingTime": "2024-11-06T14:56:01.771614+01:00",
+    "ParkingSpot": 6
+  },
+  {
+    "RegistrationNumber": "BUS001",
+    "VehicleType": "BUS",
+    "ParkingTime": "2024-11-06T15:13:01.2525432+01:00",
+    "ParkingSpot": 7
+  },
+  {
+    "RegistrationNumber": "BUS001",
+    "VehicleType": "BUS",
+    "ParkingTime": "2024-11-06T15:13:01.2525432+01:00",
+    "ParkingSpot": 8
+  },
+  {
+    "RegistrationNumber": "BUS001",
+    "VehicleType": "BUS",
+    "ParkingTime": "2024-11-06T15:13:01.2525432+01:00",
+    "ParkingSpot": 9
+  },
+  {
+    "RegistrationNumber": "BUS001",
+    "VehicleType": "BUS",
+    "ParkingTime": "2024-11-06T15:13:01.2525432+01:00",
+    "ParkingSpot": 10
+  },
+  {
     "RegistrationNumber": "CAR001",
     "VehicleType": "CAR",
     "ParkingTime": "2024-11-03T19:37:10.3077881+01:00",
-    "ParkingSpot": 0
+    "ParkingSpot": 11
   }
 ]

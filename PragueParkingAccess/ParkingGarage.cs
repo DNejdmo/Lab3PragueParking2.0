@@ -97,7 +97,7 @@ namespace PragueParkingAccess
 
         private Configuration LoadConfig()
         {
-            string configPath = "../../../config.json"; // justera sökvägen om nödvändigt
+            string configPath = "../../../config.json"; 
             if (File.Exists(configPath))
             {
                 string jsonData = File.ReadAllText(configPath);
@@ -112,10 +112,12 @@ namespace PragueParkingAccess
             Configuration config = LoadConfig();
             int columns = config.Columns;
             int totalSpots = config.ParkingSpots;
+            int maxSpotSize = config.ParkingSpotSize;
             var table = new Table()
                 .NoBorder();
 
-            AnsiConsole.MarkupLine("[red]Red = Occupied[/], [yellow]Yellow = There is still room for one MC[/], [green]Green = Empty[/]");
+            // Instruktioner för färgerna
+            AnsiConsole.MarkupLine("[red]Red = Full[/], [yellow]Yellow = Partially Occupied[/], [green]Green = Empty[/]");
 
             for (int i = 0; i < columns; i++)
             {
@@ -129,54 +131,38 @@ namespace PragueParkingAccess
             {
                 string cellContent = "";
 
-                // Om platsen är upptagen
+                // Kontrollera om platsen är upptagen
                 if (spotIndex < parkingLot.Length && parkingLot[spotIndex].Count > 0)
                 {
                     var vehiclesOnSpot = parkingLot[spotIndex];
+                    int totalSizeUsed = vehiclesOnSpot.Sum(v => v.Size);
 
-                    // Om det finns 1 fordon
-                    if (vehiclesOnSpot.Count == 1)
+                    
+                    if (totalSizeUsed >= maxSpotSize)
                     {
-                        // Om det är en motorcykel
-                        if (vehiclesOnSpot[0].VehicleType == "MC")
-                        {
-                            cellContent = $"[yellow]#{spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}[/]";
-                        }
-                        else
-                        {
-                            // Det är en bil
-                            cellContent = $"[red]#{spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}[/]";
-                        }
+                        // Full plats (röd)
+                        cellContent = $"[red]#{spotIndex + 1}\n{string.Join(",\n", vehiclesOnSpot.Select(v => Markup.Escape(v.RegistrationNumber)))}[/]";
                     }
-                    // Om det finns två MC
-                    else if (vehiclesOnSpot.Count == 2)
+                    else
                     {
-                        // Om de är motorcyklar(kan bara vara det just nu, men skulle kunna vara cykel i framtiden)
-                        if (vehiclesOnSpot.All(v => v.VehicleType == "MC"))
-                        {
-                            cellContent = $"[red]#{spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}, {Markup.Escape(vehiclesOnSpot[1].RegistrationNumber)}[/]";
-                        }
-                        else
-                        {
-                            
-                            cellContent = $"[red]#{spotIndex + 1}\n{Markup.Escape(vehiclesOnSpot[0].RegistrationNumber)}, {Markup.Escape(vehiclesOnSpot[1].RegistrationNumber)}[/]";
-                        }
+                        // Delvis upptagen plats (gul)
+                        cellContent = $"[yellow]#{spotIndex + 1}\n{string.Join(",\n", vehiclesOnSpot.Select(v => Markup.Escape(v.RegistrationNumber)))}[/]";
                     }
                 }
                 else
                 {
-                    // Om platsen är tom
+                    // Tom plats (grön)
                     cellContent = $"[green]#{spotIndex + 1}\nEmpty[/]";
                 }
 
                 rowContent.Add(cellContent);
 
+                // Skapa rad i tabellen när antalet kolumner har fyllts
                 if (rowContent.Count == columns)
                 {
                     table.AddRow(rowContent.ToArray());
                     rowContent.Clear();
                 }
-               
             }
 
             // Lägg till sista raden om det finns platser kvar
@@ -192,6 +178,7 @@ namespace PragueParkingAccess
             // Skriv ut tabellen med Spectre.Console
             AnsiConsole.Write(table);
         }
+
 
         // Metod för att flytta fordon (Menyval 3)
         public void MoveVehicle(string registrationNumber, int newSpot)
@@ -257,17 +244,27 @@ namespace PragueParkingAccess
                     if (parkingLot[i][j].RegistrationNumber == registrationNumber)
                     {
                         Vehicle vehicleToRemove = parkingLot[i][j];
-                        parkingLot[i].RemoveAt(j);
-                        Console.WriteLine($"Vehicle {registrationNumber} has been removed from spot {i + 1}.");
+                        int requiredSpots = (int)Math.Ceiling(vehicleToRemove.Size / (double)parkingSpotSize);
 
+                        // Ta bort fordonet från alla platser det upptar
+                        for (int k = 0; k < requiredSpots; k++)
+                        {
+                            if (i + k < parkingLot.Length)
+                            {
+                                parkingLot[i + k].RemoveAll(v => v.RegistrationNumber == registrationNumber);
+                            }
+                        }
+
+                        Console.WriteLine($"Fordon {registrationNumber} har tagits bort från plats {i + 1} till {i + requiredSpots}.");
                         SaveVehicles(); // Spara direkt efter borttagning
                         return vehicleToRemove;  // Returnera det borttagna fordonet
                     }
                 }
             }
-            Console.WriteLine("The vehicle could not be found.");
+            Console.WriteLine("Fordonet kunde inte hittas.");
             return null; // Returnera null om inget fordon hittades
         }
+
 
         public void SaveVehicles()
         {
@@ -315,6 +312,14 @@ namespace PragueParkingAccess
                         else if (vehicleData.VehicleType == "MC")
                         {
                             vehicle = new MC(vehicleData.RegistrationNumber);
+                        }
+                        else if (vehicleData.VehicleType == "BUS")
+                        {
+                            vehicle = new Bus(vehicleData.RegistrationNumber);
+                        }
+                        else if (vehicleData.VehicleType == "BICYCLE")
+                        {
+                            vehicle = new Bicycle(vehicleData.RegistrationNumber);
                         }
                         else
                         {

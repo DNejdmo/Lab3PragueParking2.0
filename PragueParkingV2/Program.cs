@@ -47,7 +47,7 @@ class Program
                         string vehicleType = AnsiConsole.Prompt(
                             new SelectionPrompt<string>()
                                 .Title("Choose vehicletype:")
-                                .AddChoices("CAR", "MC")
+                                .AddChoices("CAR", "MC", "BUS", "BICYCLE")
                                 .HighlightStyle(new Style(Color.Blue, decoration: Decoration.Bold)));
 
 
@@ -65,11 +65,19 @@ class Program
 
                         } while (registrationNumber.Length > 10);
 
-                        // Skapa fordonet baserat på det valda valet
+                        // Skapa fordonet baserat på användarens val
                         Vehicle vehicle;
                         if (vehicleType == "CAR")
                         {
                             vehicle = new Car(registrationNumber);
+                        }
+                        else if (vehicleType == "BUS")
+                        {
+                            vehicle = new Bus(registrationNumber);
+                        }
+                        else if (vehicleType == "BICYCLE")
+                        {
+                            vehicle = new Bicycle(registrationNumber);
                         }
                         else
                         {
